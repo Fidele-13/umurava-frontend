@@ -11,7 +11,7 @@ Next.js frontend for the Umurava HR AI backend.
 
 ## Setup
 1. Install dependencies inside `web/`
-2. Set `NEXT_PUBLIC_API_BASE_URL=http://localhost:3000`
+2. Set `NEXT_PUBLIC_API_BASE_URL=https://umurava-jaq4.onrender.com`
 3. Run `npm run dev`
 
 ## Notes

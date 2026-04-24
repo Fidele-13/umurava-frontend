@@ -108,7 +108,7 @@ import {
 // ============================================================================
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || 'http://localhost:3000';
+  process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || 'https://umurava-jaq4.onrender.com';
 
 // ============================================================================
 // TYPES (Based on AI Documentation)
