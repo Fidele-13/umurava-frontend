@@ -49,6 +49,44 @@ import {
   ThumbsDown,
   HelpCircle,
   AlertCircle,
+  Cpu,
+  Cloud,
+  Info,
+  FileText,
+  Copy,
+  Check,
+  Globe,
+  Database,
+  Server,
+  Wifi,
+  Battery,
+  Volume2,
+  Mic,
+  Camera,
+  Video,
+  Music,
+  Gamepad,
+  Book,
+  Coffee,
+  Gift,
+  Sun,
+  Moon,
+  CloudRain,
+  Wind,
+  Thermometer,
+  Droplet,
+  Compass,
+  Map,
+  Flag,
+  Anchor,
+  Umbrella,
+  Snowflake,
+  Flame,
+  Leaf,
+  Heart,
+  Smile,
+  Frown,
+  Meh,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { AppShell, useAppShell } from '@/app/components/app-shell';
@@ -68,6 +106,13 @@ import {
   Line,
   AreaChart,
   Area,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ComposedChart,
+  Scatter,
 } from 'recharts';
 
 const API_BASE_URL =
@@ -279,6 +324,33 @@ function runAIRank(payload: {
 }
 
 // ============================================================================
+// STATUS BADGE COMPONENT
+// ============================================================================
+
+const AITypeBadge = ({ usedGemini }: { usedGemini: boolean }) => {
+  return (
+    <span className={clsx(
+      'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium shadow-sm',
+      usedGemini
+        ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white'
+        : 'bg-amber-100 text-amber-700 border border-amber-200'
+    )}>
+      {usedGemini ? (
+        <>
+          <Brain className="h-3 w-3" />
+          AI Powered (Gemini)
+        </>
+      ) : (
+        <>
+          <Cpu className="h-3 w-3" />
+          Fallback Mode (Local)
+        </>
+      )}
+    </span>
+  );
+};
+
+// ============================================================================
 // RANKED CANDIDATE CARD COMPONENT
 // ============================================================================
 
@@ -307,6 +379,9 @@ function RankedCandidateCard({ candidate, index, candidateLookup }: RankedCandid
   const DecisionIcon = decisionIcons[candidate.decision];
   const medalColors = ['from-yellow-500 to-amber-600', 'from-gray-400 to-gray-500', 'from-amber-600 to-orange-600'];
 
+  // Confidence level color
+  const confidenceColor = candidate.confidence >= 0.8 ? 'text-emerald-600' : candidate.confidence >= 0.6 ? 'text-amber-600' : 'text-red-600';
+
   return (
     <div className="group rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:shadow-lg">
       {/* Header */}
@@ -327,7 +402,7 @@ function RankedCandidateCard({ candidate, index, candidateLookup }: RankedCandid
             </div>
 
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h3 className="font-semibold text-slate-800">
                   {candidateData?.firstName} {candidateData?.lastName}
                 </h3>
@@ -379,27 +454,42 @@ function RankedCandidateCard({ candidate, index, candidateLookup }: RankedCandid
                 {candidate.score}
               </span>
             </div>
-            <p className="mt-1 text-xs text-slate-500">Score</p>
+            <p className="mt-1 text-xs text-slate-500">Match Score</p>
           </div>
         </div>
 
         {/* Explanation */}
-        <p className="mt-3 text-sm text-slate-600">{candidate.explanation}</p>
+        <p className="mt-3 text-sm text-slate-600 line-clamp-2">{candidate.explanation}</p>
 
         {/* Strengths & Concerns */}
-        <div className="mt-3 flex flex-wrap gap-3">
+        <div className="mt-3 flex flex-wrap gap-2">
           {candidate.strengths.slice(0, 2).map((strength, idx) => (
             <span key={idx} className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700">
               <ThumbsUp className="h-3 w-3" />
-              {strength}
+              {strength.length > 30 ? strength.substring(0, 30) + '...' : strength}
             </span>
           ))}
           {candidate.concerns.slice(0, 2).map((concern, idx) => (
             <span key={idx} className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-700">
               <ThumbsDown className="h-3 w-3" />
-              {concern}
+              {concern.length > 30 ? concern.substring(0, 30) + '...' : concern}
             </span>
           ))}
+        </div>
+
+        {/* AI Confidence Indicator */}
+        <div className="mt-3 flex items-center gap-2">
+          <Brain className="h-3.5 w-3.5 text-purple-500" />
+          <span className="text-xs text-slate-500">AI Confidence:</span>
+          <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+            <div 
+              className={clsx('h-full rounded-full transition-all', confidenceColor.replace('text', 'bg'))}
+              style={{ width: `${candidate.confidence * 100}%` }}
+            />
+          </div>
+          <span className={clsx('text-xs font-medium', confidenceColor)}>
+            {(candidate.confidence * 100).toFixed(0)}%
+          </span>
         </div>
 
         {/* Expand Button */}
@@ -464,16 +554,68 @@ function RankedCandidateCard({ candidate, index, candidateLookup }: RankedCandid
                 </ul>
               </div>
             )}
-
-            {/* Confidence */}
-            <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-2">
-              <Brain className="h-4 w-4 text-blue-600" />
-              <span className="text-xs text-blue-700">
-                AI Confidence: {(candidate.confidence * 100).toFixed(0)}%
-              </span>
-            </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// RAW OUTPUT MODAL
+// ============================================================================
+
+interface RawOutputModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  output: string;
+}
+
+function RawOutputModal({ isOpen, onClose, output }: RawOutputModalProps) {
+  const [copied, setCopied] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(output);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      
+      <div className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="grid h-10 w-10 place-content-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 text-white">
+              <FileText className="h-4 w-4" />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">Raw AI Model Output</h2>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 text-slate-400 hover:bg-slate-100">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="rounded-xl bg-slate-900 p-4 overflow-x-auto">
+            <pre className="text-xs text-slate-300 whitespace-pre-wrap font-mono">
+              {output}
+            </pre>
+          </div>
+          
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={handleCopy}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+            >
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? 'Copied!' : 'Copy to Clipboard'}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -555,6 +697,7 @@ function RunAIScreeningModal({ isOpen, onClose, onSuccess, jobId, jobTitle }: Ru
               onChange={(e) => setTopN(parseInt(e.target.value) || 5)}
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
             />
+            <p className="mt-1 text-xs text-slate-400">1-20 candidates will be ranked and analyzed</p>
           </div>
 
           <div>
@@ -568,6 +711,7 @@ function RunAIScreeningModal({ isOpen, onClose, onSuccess, jobId, jobTitle }: Ru
               placeholder="e.g., Prioritize candidates with strong backend architecture experience and cloud certifications..."
               className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-100"
             />
+            <p className="mt-1 text-xs text-slate-400">Customize what the AI should focus on during screening</p>
           </div>
 
           {error && (
@@ -613,6 +757,7 @@ export default function AnalysisPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showRunModal, setShowRunModal] = useState(false);
+  const [showRawOutputModal, setShowRawOutputModal] = useState(false);
   const [runningScreening, setRunningScreening] = useState(false);
 
   useEffect(() => {
@@ -649,9 +794,9 @@ export default function AnalysisPage() {
       setCandidateLookup(nextLookup);
       setScreenings(hydratedScreenings);
       
-      // Find screening for this job
-      const jobScreening = hydratedScreenings.find(s => s.jobExternalId === jobId);
-      setCurrentScreening(jobScreening || null);
+      // Find screening for this job (newest first)
+      const jobScreenings = hydratedScreenings.filter(s => s.jobExternalId === jobId);
+      setCurrentScreening(jobScreenings[0] || null);
     } catch (err) {
       setError('Failed to load analysis data. Please try again.');
       console.error(err);
@@ -678,6 +823,7 @@ export default function AnalysisPage() {
   const scoreDistribution = currentScreening?.rankedCandidates.map(c => ({
     name: getCandidateLabel(c, c.rank - 1, candidateLookup).split(' ')[0] || `Candidate ${c.rank}`,
     score: c.score,
+    confidence: (c.confidence * 100).toFixed(0),
   })).slice(0, 10) || [];
 
   const strengthsFrequency = currentScreening?.rankedCandidates
@@ -701,6 +847,19 @@ export default function AnalysisPage() {
   const topConcerns = Object.entries(concernsFrequency || {})
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5);
+
+  // Confidence distribution for chart
+  const confidenceDistribution = currentScreening?.rankedCandidates.reduce((acc, c) => {
+    const level = c.confidence >= 0.8 ? 'High (80-100%)' : c.confidence >= 0.6 ? 'Medium (60-79%)' : 'Low (0-59%)';
+    acc[level] = (acc[level] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const confidenceData = Object.entries(confidenceDistribution || {}).map(([name, value]) => ({
+    name,
+    value,
+    color: name.includes('High') ? '#10b981' : name.includes('Medium') ? '#f59e0b' : '#ef4444',
+  }));
 
   if (loading) {
     return (
@@ -733,219 +892,308 @@ export default function AnalysisPage() {
   if (error || !job) {
     return (
       <AppShell>
-          <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-center p-4 sm:p-6">
-            <div className="rounded-2xl bg-white p-8 text-center shadow-xl">
-              <AlertCircle className="mx-auto h-16 w-16 text-red-400" />
-              <h2 className="mt-4 text-xl font-bold text-slate-800">Error Loading Page</h2>
-              <p className="mt-2 text-slate-600">{error || 'Job not found'}</p>
-              <Link
-                href="/jobs"
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-white hover:from-blue-700 hover:to-indigo-700"
-              >
-                Back to Jobs
-              </Link>
-            </div>
+        <div className="mx-auto flex max-w-[1600px] flex-col items-center justify-center p-4 sm:p-6 min-h-[80vh]">
+          <div className="rounded-2xl bg-white p-8 text-center shadow-xl">
+            <AlertCircle className="mx-auto h-16 w-16 text-red-400" />
+            <h2 className="mt-4 text-xl font-bold text-slate-800">Error Loading Page</h2>
+            <p className="mt-2 text-slate-600">{error || 'Job not found'}</p>
+            <Link
+              href="/jobs"
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-2.5 text-white hover:from-blue-700 hover:to-indigo-700"
+            >
+              Back to Jobs
+            </Link>
           </div>
+        </div>
       </AppShell>
     );
   }
 
   return (
     <AppShell>
-        <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
-          {/* Header */}
-          <header className="group mb-6 flex flex-col gap-4 rounded-2xl bg-white/95 p-5 shadow-lg backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <button onClick={openSidebar} className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 lg:hidden">
-                <Menu className="h-5 w-5" />
+      <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
+        {/* Header */}
+        <header className="group mb-6 flex flex-col gap-4 rounded-2xl bg-white/95 p-5 shadow-lg backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <button onClick={openSidebar} className="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 lg:hidden">
+              <Menu className="h-5 w-5" />
+            </button>
+            <div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                  AI Analysis
+                </h1>
+                {currentScreening && (
+                  <AITypeBadge usedGemini={currentScreening.usedGemini} />
+                )}
+              </div>
+              <p className="mt-1 text-sm text-slate-500">
+                {job.title} - {job.department} • {job.location}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            {currentScreening?.rawModelOutput && (
+              <button
+                onClick={() => setShowRawOutputModal(true)}
+                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50"
+              >
+                <FileText className="h-4 w-4" />
+                Raw Output
               </button>
-              <div>
-                <div className="flex items-center gap-3">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                    AI Analysis
-                  </h1>
-                  {currentScreening?.usedGemini && (
-                    <span className="flex items-center gap-1 rounded-full bg-purple-100 px-2 py-1 text-xs font-semibold text-purple-700">
-                      <Sparkles className="h-3 w-3" />
-                      Gemini AI
-                    </span>
-                  )}
+            )}
+            <button
+              onClick={() => setShowRunModal(true)}
+              disabled={runningScreening}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-md hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50"
+            >
+              {runningScreening ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Brain className="h-4 w-4" />
+              )}
+              Run New Screening
+            </button>
+            <button
+              onClick={() => loadData()}
+              className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </button>
+          </div>
+        </header>
+
+        {!currentScreening ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 text-center shadow-md">
+            <Brain className="h-16 w-16 text-slate-300" />
+            <h3 className="mt-4 text-lg font-semibold text-slate-700">No AI Screening Results</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Run AI screening to rank candidates for this job
+            </p>
+            <button
+              onClick={() => setShowRunModal(true)}
+              className="mt-4 flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-md hover:from-purple-700 hover:to-indigo-700"
+            >
+              <Brain className="h-4 w-4" />
+              Run AI Screening
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+              <div className="rounded-xl bg-white p-4 text-center shadow-md hover:shadow-lg transition-all">
+                <p className="text-2xl font-bold text-slate-800">{currentScreening.rankedCandidates.length}</p>
+                <p className="text-xs text-slate-500">Total Ranked</p>
+              </div>
+              <div className="rounded-xl bg-emerald-50 p-4 text-center shadow-md hover:shadow-lg transition-all">
+                <p className="text-2xl font-bold text-emerald-600">
+                  {currentScreening.rankedCandidates.filter(c => c.decision === 'Selected').length}
+                </p>
+                <p className="text-xs text-emerald-600">Selected</p>
+              </div>
+              <div className="rounded-xl bg-yellow-50 p-4 text-center shadow-md hover:shadow-lg transition-all">
+                <p className="text-2xl font-bold text-yellow-600">
+                  {currentScreening.rankedCandidates.filter(c => c.decision === 'Consider').length}
+                </p>
+                <p className="text-xs text-yellow-600">Consider</p>
+              </div>
+              <div className="rounded-xl bg-red-50 p-4 text-center shadow-md hover:shadow-lg transition-all">
+                <p className="text-2xl font-bold text-red-600">
+                  {currentScreening.rankedCandidates.filter(c => c.decision === 'Reject').length}
+                </p>
+                <p className="text-xs text-red-600">Rejected</p>
+              </div>
+              <div className="rounded-xl bg-purple-50 p-4 text-center shadow-md hover:shadow-lg transition-all">
+                <p className="text-2xl font-bold text-purple-600">
+                  {Math.round(currentScreening.rankedCandidates.reduce((acc, c) => acc + c.confidence, 0) / currentScreening.rankedCandidates.length * 100)}%
+                </p>
+                <p className="text-xs text-purple-600">Avg Confidence</p>
+              </div>
+              <div className="rounded-xl bg-indigo-50 p-4 text-center shadow-md hover:shadow-lg transition-all">
+                <p className="text-2xl font-bold text-indigo-600">
+                  {currentScreening.topN}
+                </p>
+                <p className="text-xs text-indigo-600">Top N</p>
+              </div>
+            </div>
+
+            {/* AI Info Banner */}
+            <div className={clsx(
+              'mb-6 rounded-xl p-4 flex items-center justify-between',
+              currentScreening.usedGemini ? 'bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'
+            )}>
+              <div className="flex items-center gap-3">
+                {currentScreening.usedGemini ? (
+                  <Brain className="h-8 w-8 text-emerald-600" />
+                ) : (
+                  <Cpu className="h-8 w-8 text-amber-600" />
+                )}
+                <div>
+                  <h3 className="font-semibold text-slate-800">
+                    {currentScreening.usedGemini ? 'Gemini AI Powered Analysis' : 'Fallback Mode Active'}
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    {currentScreening.usedGemini 
+                      ? 'This screening used Google Gemini AI for intelligent candidate ranking and analysis.'
+                      : 'Gemini AI was unavailable. Local deterministic algorithm was used for ranking.'}
+                  </p>
                 </div>
-                <p className="mt-1 text-sm text-slate-500">
-                  {job.title} - AI-powered candidate ranking and insights
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-500">
+                  {new Date(currentScreening.createdAt).toLocaleString()}
                 </p>
               </div>
             </div>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowRunModal(true)}
-                disabled={runningScreening}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-md hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50"
-              >
-                {runningScreening ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Brain className="h-4 w-4" />
-                )}
-                Run New Screening
-              </button>
-              <button
-                onClick={() => loadData()}
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition-all hover:bg-slate-50"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Refresh
-              </button>
+            {/* Charts Row */}
+            <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              {/* Decision Distribution Pie Chart */}
+              <div className="rounded-xl bg-white p-5 shadow-md">
+                <h3 className="mb-4 text-sm font-semibold text-slate-700">Decision Distribution</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RechartsPieChart>
+                    <Pie
+                      data={decisionData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? 'Unknown'}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {decisionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Score Distribution Bar Chart */}
+              <div className="rounded-xl bg-white p-5 shadow-md">
+                <h3 className="mb-4 text-sm font-semibold text-slate-700">Top Candidate Match Scores</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RechartsBarChart data={scoreDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <YAxis domain={[0, 100]} />
+                    <Tooltip formatter={(value) => `${value}%`} />
+                    <Bar dataKey="score" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                  </RechartsBarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Confidence Distribution */}
+              <div className="rounded-xl bg-white p-5 shadow-md">
+                <h3 className="mb-4 text-sm font-semibold text-slate-700">AI Confidence Distribution</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <RechartsPieChart>
+                    <Pie
+                      data={confidenceData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? 'Unknown'}: ${((percent ?? 0) * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {confidenceData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </RechartsPieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Score vs Confidence Scatter */}
+              <div className="rounded-xl bg-white p-5 shadow-md">
+                <h3 className="mb-4 text-sm font-semibold text-slate-700">Score vs Confidence Correlation</h3>
+                <ResponsiveContainer width="100%" height={250}>
+                  <ComposedChart data={scoreDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+                    <YAxis yAxisId="left" domain={[0, 100]} />
+                    <YAxis yAxisId="right" orientation="right" domain={[0, 100]} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="score" fill="#8b5cf6" name="Match Score" />
+                    <Line yAxisId="right" type="monotone" dataKey="confidence" stroke="#10b981" name="Confidence %" strokeWidth={2} />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </header>
 
-          {!currentScreening ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl bg-white py-16 text-center">
-              <Brain className="h-16 w-16 text-slate-300" />
-              <h3 className="mt-4 text-lg font-semibold text-slate-700">No AI Screening Results</h3>
-              <p className="mt-1 text-sm text-slate-500">
-                Run AI screening to rank candidates for this job
-              </p>
-              <button
-                onClick={() => setShowRunModal(true)}
-                className="mt-4 flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-medium text-white"
-              >
-                <Brain className="h-4 w-4" />
-                Run AI Screening
-              </button>
+            {/* Strengths & Concerns */}
+            <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-xl bg-white p-5 shadow-md">
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                  <ThumbsUp className="h-4 w-4" />
+                  Top Strengths Across Candidates
+                </h3>
+                <div className="space-y-2">
+                  {topStrengths.map(([strength, count]) => (
+                    <div key={strength} className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">{strength}</span>
+                      <span className="text-sm font-semibold text-emerald-600">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-white p-5 shadow-md">
+                <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-red-700">
+                  <ThumbsDown className="h-4 w-4" />
+                  Top Concerns Across Candidates
+                </h3>
+                <div className="space-y-2">
+                  {topConcerns.map(([concern, count]) => (
+                    <div key={concern} className="flex items-center justify-between">
+                      <span className="text-sm text-slate-600">{concern}</span>
+                      <span className="text-sm font-semibold text-red-600">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Stats Cards */}
-              <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-5">
-                <div className="rounded-xl bg-white p-4 text-center shadow-md">
-                  <p className="text-2xl font-bold text-slate-800">{currentScreening.rankedCandidates.length}</p>
-                  <p className="text-xs text-slate-500">Total Ranked</p>
-                </div>
-                <div className="rounded-xl bg-emerald-50 p-4 text-center shadow-md">
-                  <p className="text-2xl font-bold text-emerald-600">
-                    {currentScreening.rankedCandidates.filter(c => c.decision === 'Selected').length}
-                  </p>
-                  <p className="text-xs text-emerald-600">Selected</p>
-                </div>
-                <div className="rounded-xl bg-yellow-50 p-4 text-center shadow-md">
-                  <p className="text-2xl font-bold text-yellow-600">
-                    {currentScreening.rankedCandidates.filter(c => c.decision === 'Consider').length}
-                  </p>
-                  <p className="text-xs text-yellow-600">Consider</p>
-                </div>
-                <div className="rounded-xl bg-red-50 p-4 text-center shadow-md">
-                  <p className="text-2xl font-bold text-red-600">
-                    {currentScreening.rankedCandidates.filter(c => c.decision === 'Reject').length}
-                  </p>
-                  <p className="text-xs text-red-600">Rejected</p>
-                </div>
-                <div className="rounded-xl bg-purple-50 p-4 text-center shadow-md">
-                  <p className="text-2xl font-bold text-purple-600">
-                    {Math.round(currentScreening.rankedCandidates.reduce((acc, c) => acc + c.confidence, 0) / currentScreening.rankedCandidates.length * 100)}%
-                  </p>
-                  <p className="text-xs text-purple-600">Avg Confidence</p>
-                </div>
+
+            {/* Custom Prompt if exists */}
+            {currentScreening.customPrompt && (
+              <div className="mb-6 rounded-xl bg-blue-50 p-4 border border-blue-200">
+                <h3 className="mb-1 text-sm font-semibold text-blue-700">Custom Screening Criteria</h3>
+                <p className="text-sm text-blue-600">{currentScreening.customPrompt}</p>
               </div>
+            )}
 
-              {/* Charts Row */}
-              <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Decision Distribution Pie Chart */}
-                <div className="rounded-xl bg-white p-5 shadow-md">
-                  <h3 className="mb-4 text-sm font-semibold text-slate-700">Decision Distribution</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RechartsPieChart>
-                      <Pie
-                        data={decisionData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }: { name?: string; percent?: number }) => `${name ?? 'Unknown'}: ${((percent ?? 0) * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {decisionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </RechartsPieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Score Distribution Bar Chart */}
-                <div className="rounded-xl bg-white p-5 shadow-md">
-                  <h3 className="mb-4 text-sm font-semibold text-slate-700">Top Candidate Scores</h3>
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RechartsBarChart data={scoreDistribution}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis domain={[0, 100]} />
-                      <Tooltip />
-                      <Bar dataKey="score" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                    </RechartsBarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Strengths & Concerns */}
-              <div className="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="rounded-xl bg-white p-5 shadow-md">
-                  <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-700">
-                    <ThumbsUp className="h-4 w-4" />
-                    Top Strengths
-                  </h3>
-                  <div className="space-y-2">
-                    {topStrengths.map(([strength, count]) => (
-                      <div key={strength} className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">{strength}</span>
-                        <span className="text-sm font-semibold text-emerald-600">{count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-white p-5 shadow-md">
-                  <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-red-700">
-                    <ThumbsDown className="h-4 w-4" />
-                    Top Concerns
-                  </h3>
-                  <div className="space-y-2">
-                    {topConcerns.map(([concern, count]) => (
-                      <div key={concern} className="flex items-center justify-between">
-                        <span className="text-sm text-slate-600">{concern}</span>
-                        <span className="text-sm font-semibold text-red-600">{count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Custom Prompt if exists */}
-              {currentScreening.customPrompt && (
-                <div className="mb-6 rounded-xl bg-blue-50 p-4">
-                  <h3 className="mb-1 text-sm font-semibold text-blue-700">Custom Screening Criteria</h3>
-                  <p className="text-sm text-blue-600">{currentScreening.customPrompt}</p>
-                </div>
-              )}
-
-              {/* Ranked Candidates List */}
-              <div className="space-y-4">
+            {/* Ranked Candidates List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-slate-800">Ranked Candidates</h2>
-                {currentScreening.rankedCandidates.map((candidate, idx) => (
-                  <RankedCandidateCard
-                    key={getRankedCandidateKey(candidate, idx, candidateLookup)}
-                    candidate={candidate}
-                    index={idx}
-                    candidateLookup={candidateLookup}
-                  />
-                ))}
+                <span className="text-xs text-slate-500">
+                  {currentScreening.rankedCandidates.length} candidates ranked
+                </span>
               </div>
-            </>
-          )}
-        </div>
+              {currentScreening.rankedCandidates.map((candidate, idx) => (
+                <RankedCandidateCard
+                  key={getRankedCandidateKey(candidate, idx, candidateLookup)}
+                  candidate={candidate}
+                  index={idx}
+                  candidateLookup={candidateLookup}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Run Screening Modal */}
       {showRunModal && (
@@ -955,6 +1203,15 @@ export default function AnalysisPage() {
           onSuccess={handleRunScreening}
           jobId={jobId!}
           jobTitle={job.title}
+        />
+      )}
+
+      {/* Raw Output Modal */}
+      {showRawOutputModal && currentScreening?.rawModelOutput && (
+        <RawOutputModal
+          isOpen={showRawOutputModal}
+          onClose={() => setShowRawOutputModal(false)}
+          output={currentScreening.rawModelOutput}
         />
       )}
     </AppShell>
