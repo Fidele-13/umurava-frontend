@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import {
@@ -619,7 +619,7 @@ function ApplicantCard({ application, onUpdateStatus }: ApplicantCardProps) {
 // MAIN APPLICANTS PAGE
 // ============================================================================
 
-export default function ApplicantsPage() {
+function ApplicantsPageContent() {
   const searchParams = useSearchParams();
   const jobId = searchParams.get('jobId');
   const { openSidebar } = useAppShell();
@@ -878,5 +878,13 @@ export default function ApplicantsPage() {
         />
       )}
     </AppShell>
+  );
+}
+
+export default function ApplicantsPage() {
+  return (
+    <Suspense fallback={null}>
+      <ApplicantsPageContent />
+    </Suspense>
   );
 }
