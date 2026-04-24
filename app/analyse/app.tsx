@@ -118,9 +118,6 @@ import {
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL?.trim() || 'https://umurava-jaq4.onrender.com';
 
-// ============================================================================
-// API TYPES
-// ============================================================================
 
 export type Job = {
   _id: string;
@@ -279,10 +276,6 @@ function hydrateScreeningCandidates(
   };
 }
 
-// ============================================================================
-// API FUNCTIONS
-// ============================================================================
-
 async function request<T>(
   path: string,
   options?: RequestInit
@@ -323,10 +316,6 @@ function runAIRank(payload: {
   });
 }
 
-// ============================================================================
-// STATUS BADGE COMPONENT
-// ============================================================================
-
 const AITypeBadge = ({ usedGemini }: { usedGemini: boolean }) => {
   return (
     <span className={clsx(
@@ -349,10 +338,6 @@ const AITypeBadge = ({ usedGemini }: { usedGemini: boolean }) => {
     </span>
   );
 };
-
-// ============================================================================
-// RANKED CANDIDATE CARD COMPONENT
-// ============================================================================
 
 interface RankedCandidateCardProps {
   candidate: RankedCandidate;
@@ -379,12 +364,11 @@ function RankedCandidateCard({ candidate, index, candidateLookup }: RankedCandid
   const DecisionIcon = decisionIcons[candidate.decision];
   const medalColors = ['from-yellow-500 to-amber-600', 'from-gray-400 to-gray-500', 'from-amber-600 to-orange-600'];
 
-  // Confidence level color
   const confidenceColor = candidate.confidence >= 0.8 ? 'text-emerald-600' : candidate.confidence >= 0.6 ? 'text-amber-600' : 'text-red-600';
 
   return (
     <div className="group rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:shadow-lg">
-      {/* Header */}
+ 
       <div className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-4">
